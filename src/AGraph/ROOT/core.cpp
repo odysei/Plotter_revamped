@@ -282,7 +282,7 @@ void AGraph::SpitRootContainer(const string &File, const string &Type) // public
     if (Initialized == true)
         DeInitialize = false;
     else
-        InitializeAGraph();
+        Init();
 
     if (Graph_Type[0] == 'd')
         ROOTC.hist_1D->Draw(RootDrawOptions.c_str());
@@ -294,8 +294,8 @@ void AGraph::SpitRootContainer(const string &File, const string &Type) // public
     // as it may be noninitialized if wrong type is set
     if (ROOTC.canvas != nullptr) {
         if (config["Legend"]["add"].as<bool>())
-            DrawLegend(); // Legends
-        DrawAxes();       // Setting up axes
+            Draw_legend(ROOTC.legend); // Legends
+        Draw_axes(ROOTC);       // Setting up axes
 
         TFile *f = new TFile(str2char(File), "RECREATE");
         if (Type == "Canvas")
@@ -314,7 +314,7 @@ void AGraph::SpitRootContainer(const string &File, const string &Type) // public
     }
 
     if (DeInitialize == true)
-        DeInitializeAGraph();
+        Deinit();
 }
 
 void AGraph::SpitRootContainer(const string &type)

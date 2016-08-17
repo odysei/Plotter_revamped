@@ -2,523 +2,11 @@
 #define AGraph__drawers_cpp
 
 #include "AGraph/AGraph.h"
-#include <sstream>
 #include <algorithm>
 #include "helpers/type_conversion.h"
 #include "helpers/fillers_dumpers.h"
-#include "helpers/array_manipulations.h"
 #include "helpers/ROOT_IO.h" // SaveC
 #include "ROOT_styles/styles.h"
-
-int AGraph::InitializeAGraph()
-{
-    const auto n_x = config["Bins"]["n_x"].as<unsigned int>();
-    const auto n_y = config["Bins"]["n_y"].as<unsigned int>();
-
-    const auto x_min = config["Range"]["x_min"].as<double>();
-    const auto x_max = config["Range"]["x_max"].as<double>();
-    const auto y_min = config["Range"]["y_min"].as<double>();
-    const auto y_max = config["Range"]["y_max"].as<double>();
-    const auto z_min = config["Range"]["z_min"].as<double>();
-    const auto z_max = config["Range"]["z_max"].as<double>();
-    if (config["Bins"]["custom_binning"].as<bool>()) {
-        auto vx = config["Bins"]["custom_x"].as<vector<double>>();
-        if ((n_x + 1) != vx.size())
-            return 3;
-        sort(vx.begin(), vx.end());
-        Custom_BinsX = new double[n_x + 1];
-        for (unsigned int i = 0; i < vx.size(); ++i)
-            Custom_BinsX[i] = vx[i];
-
-        auto vy = config["Bins"]["custom_y"].as<vector<double>>();
-        if ((n_y + 1) != vy.size())
-            return 3;
-        sort(vy.begin(), vy.end());
-        Custom_BinsY = new double[n_y + 1];
-        for (unsigned int i = 0; i < vy.size(); ++i)
-            Custom_BinsY[i] = vy[i];
-    }
-    // 	if( Initialized==false )
-    // 	{
-    if (ContainerD == nullptr && ContainerDY == nullptr &&
-        ContainerDZ == nullptr)
-        return 1;
-    if (Graph_Type[0] == 'd') {
-        if (ContainerD == nullptr)
-            return 1;
-        if (ContainerD->size() == 0)
-            return 1;
-
-        SetStyle(config["Formatting"]["style"].as<string>());
-
-        if (config["Draw_options"]["histogram"].as<string>() == "")
-            RootDrawOptions = "E1 HIST";
-        else
-            RootDrawOptions = config["Draw_options"]["histogram"].as<string>();
-
-        ROOTC.hist_1D =
-            new TH1D(config["Generic"]["data_name"].as<string>().c_str(), "",
-                     n_x, x_min, x_max);
-        ROOTC.hist_1D->SetLineColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        ROOTC.hist_1D->SetMarkerColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        if (config["Curves_and_fill"]["fill"]["color"].as<int>() != -1)
-            ROOTC.hist_1D->SetFillColor(
-                config["Curves_and_fill"]["fill"]["color"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["style"].as<int>() != -1)
-            ROOTC.hist_1D->SetMarkerStyle(
-                config["Curves_and_fill"]["marker"]["style"].as<int>());
-        if (config["Curves_and_fill"]["line"]["style"].as<int>() != -1)
-            ROOTC.hist_1D->SetLineStyle(
-                config["Curves_and_fill"]["line"]["style"].as<int>());
-        if (config["Curves_and_fill"]["fill"]["style"].as<int>() != -1)
-            ROOTC.hist_1D->SetFillStyle(
-                config["Curves_and_fill"]["fill"]["style"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["size"].as<double>() != -1)
-            ROOTC.hist_1D->SetMarkerSize(
-                config["Curves_and_fill"]["marker"]["size"].as<double>());
-        if (config["Curves_and_fill"]["line"]["width"].as<double>() != -1)
-            ROOTC.hist_1D->SetLineWidth(
-                config["Curves_and_fill"]["line"]["width"].as<double>());
-
-        ////For errors
-        ROOTC.hist_1D->Sumw2();
-        // 			hist_1D->SetName( "hist" );
-
-        ////Follows the filling procedure for the histograms
-        if (ContainerDZ == nullptr) {
-            if (ContainerDw == nullptr)
-                ROOTC.hist_1D = FillingHistD(
-                    ROOTC.hist_1D,
-                    *ContainerD); // UC for LoadDataSimple(vector<double>)
-            else
-                ROOTC.hist_1D =
-                    FillingHistD(ROOTC.hist_1D, *ContainerD, *ContainerDw);
-        } else {
-            if (ContainerDw == nullptr)
-                ROOTC.hist_1D = FillingHistD(ROOTC.hist_1D, *ContainerD,
-                                             *ContainerDZ, n_x, x_min, x_max);
-            else
-                ROOTC.hist_1D =
-                    FillingHistD(ROOTC.hist_1D, *ContainerD, *ContainerDZ,
-                                 *ContainerDw, n_x, x_min, x_max);
-        }
-
-        if (config["Smooth"]["use"].as<bool>())
-            ROOTC.hist_1D->Smooth(config["Smooth"]["times"].as<int>());
-
-        if (config["Floor"]["add"].as<bool>()) {
-            auto &h = ROOTC.hist_1D;
-            const auto floor = config["Floor"]["value"].as<double>();
-            for (long i1 = 1; i1 <= n_x; ++i1) {
-                const long bin = h->GetBin(i1);
-                const double value = h->GetBinContent(bin);
-                if (value == 0) {
-                    h->SetBinContent(bin, floor);
-                    h->SetBinError(bin, floor);
-                } else
-                    h->SetBinContent(bin, (floor + value));
-            }
-        }
-
-        ////Normalization and rescaling
-        double scale1 = config["Auto"]["rescale"].as<double>();
-        if (config["Auto"]["normalize"].as<bool>()) {
-            scale1 *= 1 / ROOTC.hist_1D->Integral();
-            ROOTC.hist_1D->Scale(scale1);
-        } else {
-            if (scale1 != 1)
-                ROOTC.hist_1D->Scale(scale1);
-        }
-
-        ////Setting Z range with possible autoscaling, choosing vector container
-        /// for Z instead of root container
-        if (config["Auto"]["scale_z_min"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.hist_1D->SetMinimum(MinimumValue(*ContainerDZ) *
-                                              scale1);
-        } else
-            ROOTC.hist_1D->SetMinimum(z_min);
-
-        if (config["Auto"]["scale_z_max"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.hist_1D->SetMaximum(MaximumValue(*ContainerDZ) *
-                                              scale1);
-        } else
-            ROOTC.hist_1D->SetMaximum(z_max);
-
-        const auto &title = config["Generic"]["plot_name"].as<string>();
-        ROOTC.hist_1D->SetTitle(title.c_str());
-
-        if (Initialized == false) {
-            //.75,.80,.95,.95
-            if (config["Legend"]["add"].as<bool>())
-                ROOTC.legend = new TLegend(
-                    config["Legend"]["placement"]["BL_x"].as<double>(),
-                    config["Legend"]["placement"]["BL_y"].as<double>(),
-                    config["Legend"]["placement"]["TR_x"].as<double>(),
-                    config["Legend"]["placement"]["TR_y"].as<double>());
-
-            ////Initializing Canvas
-            ROOTC.canvas = new TCanvas("canvas", "Histogram(s)");
-
-            if (config["Axes"]["log_x"].as<bool>())
-                ROOTC.canvas->SetLogx(1);
-            else
-                ROOTC.canvas->SetLogx(0);
-
-            // note flipped z with y for consistency
-            if (config["Axes"]["log_z"].as<bool>())
-                ROOTC.canvas->SetLogy(1);
-            else
-                ROOTC.canvas->SetLogy(0);
-
-            // ROOTC.canvas->SetFrameFillColor(kWhite);
-            // ROOTC.canvas->SetFillColor(kWhite);
-            // ROOTC.style->SetOptStat(kFALSE);
-        }
-        if (config["Legend"]["add"].as<bool>()) {
-            const auto &var_name =
-                config["Generic"]["variable_name"].as<string>();
-            const auto &mark = config["Legend"]["marker"].as<string>();
-            ROOTC.legend->AddEntry(ROOTC.hist_1D, var_name.c_str(),
-                                   mark.c_str());
-        }
-
-        Initialized = true;
-        return 0;
-    }
-
-    if (Graph_Type[0] == 'D') {
-        if (ContainerD == nullptr || ContainerDY == nullptr)
-            return 1;
-        if (ContainerD->size() == 0 || ContainerDY->size() == 0)
-            return 1;
-
-        SetStyle(config["Formatting"]["style"].as<string>());
-
-        if (config["Draw_options"]["histogram_2D"].as<string>() == "") {
-            RootDrawOptions = "colorz"; // lego2z
-            /* SPEC mode: handicaped but good looking
-            RootDrawOptions ="SPEC";
-            RootDrawOptions +=" dm(1,10)"; //Display Modes
-            RootDrawOptions +=" pa(2,1,1)"; //Pen Attributes
-            pa(color,style,width)
-            RootDrawOptions +=" ci(1,4,8)"; //Colors increments "ci(r,g,b)
-            RootDrawOptions +=" cm(1,15,4,4,1)"; //Marker on each node
-            cm(enable,color,width,height,style)
-            RootDrawOptions +=" cg(1,2) ca(0)"; //Channel grid cg(enable,color).
-            Color algorithm ca(alg)
-            RootDrawOptions += " a(" + config["Other"]["angleA_3D"].as<string>()
-                                + ","
-                                + config["Other"]["angleB_3D"].as<string>()
-                                + ","
-                                + config["Other"]["angleZ_3D"].as<string>()
-                                + ")";
-            //Angles 15,90,270
-            RootDrawOptions +=" zs(0)"; //scale: zs(0) LIN, zs(1) LOG, zs(2)
-            SQRT
-            */
-        } else {
-            RootDrawOptions =
-                config["Draw_options"]["histogram_2D"].as<string>();
-        }
-        ROOTC.style->SetPalette(1);
-
-        const auto &dn = config["Generic"]["data_name"].as<string>();
-        if (!config["Bins"]["custom_binning"].as<bool>())
-            ROOTC.hist_2D =
-                new TH2D(dn.c_str(), "", n_x, x_min, x_max, n_y, y_min, y_max);
-        else
-            ROOTC.hist_2D =
-                new TH2D(dn.c_str(), "", n_x, Custom_BinsX, n_y, Custom_BinsY);
-        ROOTC.hist_2D->SetLineColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        ROOTC.hist_2D->SetMarkerColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["style"].as<int>() != -1)
-            ROOTC.hist_2D->SetMarkerStyle(
-                config["Curves_and_fill"]["marker"]["style"].as<int>());
-        if (config["Curves_and_fill"]["line"]["style"].as<int>() != -1)
-            ROOTC.hist_2D->SetLineStyle(
-                config["Curves_and_fill"]["line"]["style"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["size"].as<double>() != -1)
-            ROOTC.hist_2D->SetMarkerSize(
-                config["Curves_and_fill"]["marker"]["size"].as<double>());
-        if (config["Curves_and_fill"]["line"]["width"].as<double>() != -1)
-            ROOTC.hist_2D->SetLineWidth(
-                config["Curves_and_fill"]["line"]["width"].as<double>());
-
-        ////For errors
-        ROOTC.hist_2D->Sumw2();
-
-        ////Follows the filling procedure for the histograms
-        if (ContainerDZ == nullptr) {
-            if (ContainerDw == nullptr)
-                ROOTC.hist_2D =
-                    FillingHist2D(ROOTC.hist_2D, *ContainerD, *ContainerDY);
-            else
-                ROOTC.hist_2D = FillingHist2D(ROOTC.hist_2D, *ContainerD,
-                                              *ContainerDY, *ContainerDw);
-        } else {
-            if (ContainerDw == nullptr)
-                ROOTC.hist_2D = FillingHist2DWOff(
-                    ROOTC.hist_2D, *ContainerD, Offset2DHistX, *ContainerDY,
-                    Offset2DHistY, *ContainerDZ, Offset2DHistZ, n_x, x_min,
-                    x_max, n_y, y_min, y_max);
-            else
-                ROOTC.hist_2D = FillingHist2DWOff(
-                    ROOTC.hist_2D, *ContainerD, Offset2DHistX, *ContainerDY,
-                    Offset2DHistY, *ContainerDZ, Offset2DHistZ, *ContainerDw,
-                    n_x, x_min, x_max, n_y, y_min, y_max);
-        }
-
-        if (config["Smooth"]["use"].as<bool>()) {
-            for (auto i = 0; i < config["Smooth"]["times"].as<int>(); ++i)
-                ROOTC.hist_2D->Smooth(
-                    1, config["Smooth"]["algorithm_2D"].as<string>().c_str());
-        }
-
-        if (config["Floor"]["add"].as<bool>()) {
-            auto &h = ROOTC.hist_2D;
-            const auto floor = config["Floor"]["value"].as<double>();
-            for (long i1 = 1; i1 <= n_x; ++i1) {
-                for (long i2 = 1; i2 <= n_y; ++i2) {
-                    const long bin = h->GetBin(i1, i2);
-                    const double value = h->GetBinContent(bin);
-                    if (value == 0) {
-                        h->SetBinContent(bin, floor);
-                        h->SetBinError(bin, floor);
-                    } else
-                        h->SetBinContent(bin, (floor + value));
-                }
-            }
-        }
-
-        ////Normalization and rescaling
-        double scale1 = config["Auto"]["rescale"].as<double>();
-        if (config["Auto"]["normalize"].as<bool>()) {
-            scale1 *= 1 / (ROOTC.hist_2D->Integral());
-            ROOTC.hist_2D->Scale(scale1);
-        } else {
-            if (scale1 != 1)
-                ROOTC.hist_2D->Scale(scale1);
-        }
-
-        ////Setting Z range with possible autoscaling, choosing vector container
-        /// for Z instead of root container
-        if (config["Auto"]["scale_z_min"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.hist_2D->SetMinimum(MinimumValue(*ContainerDZ) *
-                                              scale1);
-        } else
-            ROOTC.hist_2D->SetMinimum(z_min);
-
-        if (config["Auto"]["scale_z_max"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.hist_2D->SetMaximum(MaximumValue(*ContainerDZ) *
-                                              scale1);
-        } else
-            ROOTC.hist_2D->SetMaximum(z_max);
-
-        ROOTC.hist_2D->SetTitle(
-            str2char(config["Generic"]["plot_name"].as<string>()));
-
-        if (Initialized == false) {
-            //.75,.80,.95,.95
-            if (config["Legend"]["add"].as<bool>())
-                ROOTC.legend = new TLegend(
-                    config["Legend"]["placement"]["BL_x"].as<double>(),
-                    config["Legend"]["placement"]["BL_y"].as<double>(),
-                    config["Legend"]["placement"]["TR_x"].as<double>(),
-                    config["Legend"]["placement"]["TR_y"].as<double>());
-
-            ////Initializing Canvas
-            ROOTC.canvas = new TCanvas("canvas", "Histogram(s)");
-
-            if (config["Axes"]["log_x"].as<bool>())
-                ROOTC.canvas->SetLogx(1);
-            else
-                ROOTC.canvas->SetLogx(0);
-
-            if (config["Axes"]["log_y"].as<bool>())
-                ROOTC.canvas->SetLogy(1);
-            else
-                ROOTC.canvas->SetLogy(0);
-
-            if (config["Axes"]["log_z"].as<bool>())
-                ROOTC.canvas->SetLogz(1);
-            else
-                ROOTC.canvas->SetLogz(0);
-
-            // ROOTC.canvas->SetFrameFillColor(kWhite);
-            // ROOTC.canvas->SetFillColor(kWhite);
-            // ROOTC.style->SetOptStat(kFALSE);
-        }
-        if (config["Legend"]["add"].as<bool>()) {
-            const auto &var_name =
-                config["Generic"]["variable_name"].as<string>();
-            const auto &mark = config["Legend"]["marker"].as<string>();
-            ROOTC.legend->AddEntry(ROOTC.hist_2D, var_name.c_str(),
-                                   mark.c_str());
-        }
-
-        Initialized = true;
-        return 0;
-    }
-
-    if (Graph_Type[0] == 'p') {
-        if (ContainerD == nullptr)
-            return 1;
-        if (ContainerD->size() == 0)
-            return 1;
-
-        SetStyle(config["Formatting"]["style"].as<string>());
-
-        if (config["Draw_options"]["graph"].as<string>() == "") {
-            RootDrawOptions = "PL";
-        } else {
-            RootDrawOptions = config["Draw_options"]["graph"].as<string>();
-        }
-
-        ROOTC.graph = new TGraph(ContainerD->size(), vct2arrD(*ContainerD),
-                                 vct2arrD(*ContainerDZ));
-        ROOTC.graph->SetLineColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        ROOTC.graph->SetMarkerColor(
-            config["Curves_and_fill"]["line_marker_color"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["style"].as<int>() != -1)
-            ROOTC.graph->SetMarkerStyle(
-                config["Curves_and_fill"]["marker"]["style"].as<int>());
-        if (config["Curves_and_fill"]["line"]["style"].as<int>() != -1)
-            ROOTC.graph->SetLineStyle(
-                config["Curves_and_fill"]["line"]["style"].as<int>());
-        if (config["Curves_and_fill"]["marker"]["size"].as<double>() != -1)
-            ROOTC.graph->SetMarkerSize(
-                config["Curves_and_fill"]["marker"]["size"].as<double>());
-        if (config["Curves_and_fill"]["line"]["width"].as<double>() != -1)
-            ROOTC.graph->SetLineWidth(
-                config["Curves_and_fill"]["line"]["width"].as<double>());
-
-        ////Setting Z range with possible autoscaling, choosing vector container
-        /// for Z instead of root container
-        if (config["Auto"]["scale_z_min"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.graph->SetMinimum(MinimumValue(*ContainerDZ));
-        } else
-            ROOTC.graph->SetMinimum(z_min);
-
-        if (config["Auto"]["scale_z_max"].as<bool>()) {
-            if (ContainerDZ != nullptr)
-                if (ContainerDZ->size() != 0)
-                    ROOTC.graph->SetMaximum(MaximumValue(*ContainerDZ));
-        } else
-            ROOTC.graph->SetMaximum(z_max);
-
-        ROOTC.graph->SetTitle(
-            str2char(config["Generic"]["plot_name"].as<string>()));
-
-        if (Initialized == false) {
-            //.75,.80,.95,.95
-            if (config["Legend"]["add"].as<bool>())
-                ROOTC.legend = new TLegend(
-                    config["Legend"]["placement"]["BL_x"].as<double>(),
-                    config["Legend"]["placement"]["BL_y"].as<double>(),
-                    config["Legend"]["placement"]["TR_x"].as<double>(),
-                    config["Legend"]["placement"]["TR_y"].as<double>());
-
-            ////Initializing Canvas
-            ROOTC.canvas = new TCanvas("canvas", "Histogram(s)");
-
-            if (config["Axes"]["log_x"].as<bool>())
-                ROOTC.canvas->SetLogx(1);
-            else
-                ROOTC.canvas->SetLogx(0);
-
-            // note flipped z with y for consistency
-            if (config["Axes"]["log_z"].as<bool>())
-                ROOTC.canvas->SetLogy(1);
-            else
-                ROOTC.canvas->SetLogy(0);
-
-            // ROOTC.canvas->SetFrameFillColor(kWhite);
-            // ROOTC.canvas->SetFillColor(kWhite);
-            // style->SetOptStat(kFALSE);
-        }
-        if (config["Legend"]["add"].as<bool>()) {
-            const auto &var_name =
-                config["Generic"]["variable_name"].as<string>();
-            const auto &mark = config["Legend"]["marker"].as<string>();
-            ROOTC.legend->AddEntry(ROOTC.graph, var_name.c_str(), mark.c_str());
-        }
-
-        Initialized = true;
-        return 0;
-    }
-
-    // 	}
-    return 2;
-}
-
-void AGraph::DeInitializeAGraph()
-{
-    Initialized = false;
-
-    for (unsigned int i = 0; i < Nr_of_graphs; ++i) {
-        if (Graph_TypeM[i][0] == 'd' && ROOTC.hist_1DM[i] != nullptr)
-            delete ROOTC.hist_1DM[i];
-        if (Graph_TypeM[i][0] == 'D' && ROOTC.hist_2DM[i] != nullptr)
-            delete ROOTC.hist_2DM[i];
-        if (Graph_TypeM[i][0] == 'p' && ROOTC.graphM[i] != nullptr)
-            delete ROOTC.graphM[i];
-    }
-
-    if (ROOTC.hist_1DM != nullptr)
-        delete[] ROOTC.hist_1DM;
-    if (ROOTC.hist_2DM != nullptr)
-        delete[] ROOTC.hist_2DM;
-    if (ROOTC.graphM != nullptr)
-        delete[] ROOTC.graphM;
-
-    Graph_Type = Graph_TypeM[0];
-    delete[] Graph_TypeM;
-
-    // deteleting *Ms takes care of these 3
-    // 	delete ROOTC.hist_1D;
-    // 	delete ROOTC.hist_2D;
-    // 	delete ROOTC.graph;
-    // delete ROOTC.axis_X; //This should not be deleted as it will cause crash
-    // in most cases
-    // delete ROOTC.axis_Y; //This should not be deleted as it will cause crash
-    // in most cases
-    // delete ROOTC.axis_Z; //This should not be deleted as it will cause crash
-    // in most cases
-    if (ROOTC.canvas != nullptr)
-        delete ROOTC.canvas;
-    if (ROOTC.legend != nullptr)
-        delete ROOTC.legend;
-    if (ROOTC.style != nullptr)
-        delete ROOTC.style;
-
-    ROOTC.hist_1D = nullptr;
-    ROOTC.hist_1DM = nullptr;
-    ROOTC.hist_2D = nullptr;
-    ROOTC.hist_2DM = nullptr;
-    ROOTC.graph = nullptr;
-    ROOTC.graphM = nullptr;
-    ROOTC.axis_X = nullptr;
-    ROOTC.axis_Y = nullptr;
-    ROOTC.axis_Z = nullptr;
-    ROOTC.canvas = nullptr;
-    ROOTC.legend = nullptr;
-    ROOTC.style = nullptr;
-}
 
 int AGraph::Draw() { return Draw(nullptr, 0); }
 
@@ -615,7 +103,7 @@ int AGraph::Draw(AGraph **GraphContainer, unsigned int Nr_of_graphsI)
         ROOTC.hist_2D = nullptr;
         ROOTC.graph = nullptr;
 
-        int error = InitializeAGraph();
+        int error = Init();
         if (Graph_Type[0] == 'd' && error == 0)
             ROOTC.hist_1DM[count] = ROOTC.hist_1D;
         if (Graph_Type[0] == 'D' && error == 0)
@@ -675,14 +163,14 @@ int AGraph::Draw(AGraph **GraphContainer, unsigned int Nr_of_graphsI)
                     }
                 } else {
                     if (Graph_Type[0] == 'd')
-                        ROOTC.hist_1DM[count]->Draw(str2char(RootDrawOptions));
+                        ROOTC.hist_1DM[count]->Draw(RootDrawOptions.c_str());
                     if (Graph_Type[0] == 'D')
-                        ROOTC.hist_2DM[count]->Draw(str2char(RootDrawOptions));
+                        ROOTC.hist_2DM[count]->Draw(RootDrawOptions.c_str());
                     if (Graph_Type[0] == 'p')
                         ROOTC.graphM[count]->Draw(
                             str2char("A" + RootDrawOptions));
 
-                    DrawAxes(); // Setting up axes
+                    Draw_axes(ROOTC); // Setting up axes
                 }
             } else {
                 if (Print_Instead_Of_Draw) {
@@ -705,32 +193,28 @@ int AGraph::Draw(AGraph **GraphContainer, unsigned int Nr_of_graphsI)
 
             break;
         case 1:
-
-            DeInitializeAGraph();
             cout << "Drawing failed. Data input error.\n";
+            Deinit();
             return 1;
 
             break;
         case 2:
-
-            DeInitializeAGraph();
             cout << "Drawing failed. Failed to determine type of graph.\n";
+            Deinit();
             return 1;
 
             break;
         case 3:
-
-            DeInitializeAGraph();
             cout << "Drawing failed. The provided number of custom bins "
                     "mismatch.\n";
+            Deinit();
             return 1;
 
             break;
         default:
-
-            DeInitializeAGraph();
             cout << "Drawing failed. Unknown error (error code: " << error
                  << ").\n";
+            Deinit();
             return 1;
         }
     }
@@ -738,7 +222,7 @@ int AGraph::Draw(AGraph **GraphContainer, unsigned int Nr_of_graphsI)
     if (!Print_Instead_Of_Draw) {
         /// case 0 must be valid
         if (config["Legend"]["add"].as<bool>())
-            DrawLegend(); // Legends
+            Draw_legend(ROOTC.legend); // Legends
 
         ////output files
         const string suffix = config["Output"]["type"].as<string>();
@@ -752,32 +236,32 @@ int AGraph::Draw(AGraph **GraphContainer, unsigned int Nr_of_graphsI)
             SpitRootContainer(stub + ".root", ROOT_file);
     }
 
-    DeInitializeAGraph();
+    Deinit();
 
     return 0;
 }
 
-void AGraph::DrawAxes()
+void AGraph::Draw_axes(ROOT_containers &r)
 {
-    ROOTC.axis_X = new TAxis();
-    ROOTC.axis_Y = new TAxis();
-    ROOTC.axis_Z = new TAxis();
+    r.axis_X = new TAxis();
+    r.axis_Y = new TAxis();
+    r.axis_Z = new TAxis();
 
     if (Graph_Type[0] == 'd') {
-        ROOTC.axis_X = ROOTC.hist_1D->GetXaxis();
-        ROOTC.axis_Y = ROOTC.hist_1D->GetYaxis();
-        ROOTC.axis_Z = ROOTC.hist_1D->GetZaxis();
+        r.axis_X = r.hist_1D->GetXaxis();
+        r.axis_Y = r.hist_1D->GetYaxis();
+        r.axis_Z = r.hist_1D->GetZaxis();
     }
 
     if (Graph_Type[0] == 'D') {
-        ROOTC.axis_X = ROOTC.hist_2D->GetXaxis();
-        ROOTC.axis_Y = ROOTC.hist_2D->GetYaxis();
-        ROOTC.axis_Z = ROOTC.hist_2D->GetZaxis();
+        r.axis_X = r.hist_2D->GetXaxis();
+        r.axis_Y = r.hist_2D->GetYaxis();
+        r.axis_Z = r.hist_2D->GetZaxis();
     }
 
     if (Graph_Type[0] == 'p') {
-        ROOTC.axis_X = ROOTC.graph->GetXaxis();
-        ROOTC.axis_Y = ROOTC.graph->GetYaxis();
+        r.axis_X = r.graph->GetXaxis();
+        r.axis_Y = r.graph->GetYaxis();
         // axis_Z = graph->GetZaxis(); //Does not have a member. Why?
     }
 
@@ -785,61 +269,61 @@ void AGraph::DrawAxes()
     const auto &label_x = config["Axes"]["label_x"].as<string>();
     const auto &label_y = config["Axes"]["label_y"].as<string>();
     const auto &label_z = config["Axes"]["label_z"].as<string>();
-    ROOTC.axis_X->SetTitle(label_x.c_str());
-    ROOTC.axis_Y->SetTitle(label_y.c_str());
+    r.axis_X->SetTitle(label_x.c_str());
+    r.axis_Y->SetTitle(label_y.c_str());
     if (Graph_Type[0] != 'p' && Graph_Type[0] != 'P')
-        ROOTC.axis_Z->SetTitle(label_z.c_str());
+        r.axis_Z->SetTitle(label_z.c_str());
 
     ////Additional settings
-    // axis_X->SetAxisColor(1);
-    // axis_X->SetLabelColor(1);
-    // axis_X->SetLabelFont(62);
-    // axis_X->SetLabelOffset(0.005);
-    // axis_X->SetLabelSize(0.04);
-    // axis_X->SetNdivisions( 5, kFALSE);
-    // axis_X->SetNoExponent(kTRUE);
-    // axis_X->SetTickLength(0.03);
-    // axis_X->SetTitleOffset(1.5);
-    // axis_X->SetTitleSize(0.02);
-    // axis_X->CenterLabels();
-    // axis_X->CenterTitle();
+    // r.axis_X->SetAxisColor(1);
+    // r.axis_X->SetLabelColor(1);
+    // r.axis_X->SetLabelFont(62);
+    // r.axis_X->SetLabelOffset(0.005);
+    // r.axis_X->SetLabelSize(0.04);
+    // r.axis_X->SetNdivisions(5, kFALSE);
+    // r.axis_X->SetNoExponent(kTRUE);
+    // r.axis_X->SetTickLength(0.03);
+    // r.axis_X->SetTitleOffset(1.5);
+    // r.axis_X->SetTitleSize(0.02);
+    // r.axis_X->CenterLabels();
+    // r.axis_X->CenterTitle();
 
     ////Axes' ranges. Added for adjusting TGraph X range
     const auto x_min = config["Range"]["x_min"].as<double>();
     const auto x_max = config["Range"]["x_max"].as<double>();
-    ROOTC.axis_X->SetLimits(x_min, x_max);
-    // axis_Y->SetLimits( z_min, z_max ); //Does not work??
-    // if( Graph_Type[0]!='p' && Graph_Type[0]!='P' ) axis_Z->SetLimits(
-    // y_min, y_min ); //Does not work??
+    r.axis_X->SetLimits(x_min, x_max);
+    // r.axis_Y->SetLimits(z_min, z_max); //Does not work??
+    // if(Graph_Type[0] != 'p' && Graph_Type[0] != 'P')
+    //         r.axis_Z->SetLimits(y_min, y_min); // Does not work??
 
-    ROOTC.axis_X->SetTitleOffset(
+    r.axis_X->SetTitleOffset(
         config["Formatting"]["title_offset"]["x"].as<double>());
-    ROOTC.axis_X->CenterTitle();
-    ROOTC.axis_Y->SetTitleOffset(
+    r.axis_X->CenterTitle();
+    r.axis_Y->SetTitleOffset(
         config["Formatting"]["title_offset"]["y"].as<double>());
-    ROOTC.axis_Y->CenterTitle();
+    r.axis_Y->CenterTitle();
     if (Graph_Type[0] != 'p' && Graph_Type[0] != 'P') {
-        ROOTC.axis_Z->SetTitleOffset(
+        r.axis_Z->SetTitleOffset(
             config["Formatting"]["title_offset"]["z"].as<double>());
-        ROOTC.axis_Z->CenterTitle();
+        r.axis_Z->CenterTitle();
     }
 
-    ROOTC.axis_X->Draw(); //"ALP"
-    ROOTC.axis_Y->Draw();
+    r.axis_X->Draw(); //"ALP"
+    r.axis_Y->Draw();
     if (Graph_Type[0] != 'p' && Graph_Type[0] != 'P')
-        ROOTC.axis_Z->Draw();
+        r.axis_Z->Draw();
 }
 
-void AGraph::DrawLegend()
+void AGraph::Draw_legend(TLegend *l)
 {
-    ROOTC.legend->SetTextFont(22);
-    ROOTC.legend->SetTextSize(0.04);
-    ROOTC.legend->SetFillColor(kWhite);
+    l->SetTextFont(22);
+    l->SetTextSize(0.04);
+    l->SetFillColor(kWhite);
 
-    ROOTC.legend->Draw();
+    l->Draw();
 }
 
-void AGraph::SetStyle(string value)
+void AGraph::Set_style(const string &value)
 {
     if (value == "" || value == '\n' || value == '\0') {
         ROOTC.style = styles::Set_TDRM3();

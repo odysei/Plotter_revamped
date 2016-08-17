@@ -164,16 +164,35 @@ class AGraph
     ROOT_containers ROOTC;
 
     /// Functions
-    int InitializeAGraph();
+    inline bool Init_containers_OK();
+    template <class gra>
+    inline void Init_commons(gra *);
+    template <class gra>
+    inline int Init_tail(const double &, gra *g);
+    
+    inline void Init_hist_fill(TH1D *);
+    inline void Init_hist_fill(TH2D *);
+    inline void Init_hist_smooth(TH1D *);
+    inline void Init_hist_smooth(TH2D *);
+    inline void Init_hist_floor(TH1D *);
+    inline void Init_hist_floor(TH2D *);
+    template <class hist>
+    inline int Init_hist_tail(hist *);
+    int Init(TH1D *&);
+    int Init(TH2D *&);
+    int Init(TGraph *&);
+    
+    int Init();
+    void Deinit();
+    
     int Draw(AGraph **, unsigned int);
 
     void InitContructor(const string &);
-    void DeInitializeAGraph();
     void AutoLegendCoordinates();
 
-    void DrawAxes();
-    void DrawLegend();
-    void SetStyle(string);      // So far {"","TDR","Matt"}
+    void Draw_axes(ROOT_containers &);
+    void Draw_legend(TLegend *);
+    void Set_style(const string &);      // So far {"","TDR","Matt"}
     void Minimum(char, double); // char= X, Y, Z which corresponds to axis
 
     /// Extra
