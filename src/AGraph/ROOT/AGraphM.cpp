@@ -37,7 +37,7 @@ AGraph *AGraphM::operator[](int i)
         return &core;
     if (static_cast<int>(Nr_of_graphs) >= i && i >= 0)
         return graphs[i];
-    return NULL;
+    return nullptr;
 }
 
 int AGraphM::Draw()
@@ -85,7 +85,7 @@ inline int AGraphM::Add_AGraph_0(const AGraph &graph)
     graphs = new AGraph *[1];
     graphs[0] = new AGraph(graph);
     ++Nr_of_graphs;
-    
+
     return 0;
 }
 
@@ -93,7 +93,7 @@ template <class cfg_or_graph> int AGraphM::Add_AGraph(const cfg_or_graph &in)
 {
     if (Nr_of_graphs == 0)
         return Add_AGraph_0(core);
-    
+
     AGraph **tmp;
     tmp = new AGraph *[Nr_of_graphs + 1];
     for (unsigned int i = 0; i < Nr_of_graphs; ++i)
@@ -103,7 +103,7 @@ template <class cfg_or_graph> int AGraphM::Add_AGraph(const cfg_or_graph &in)
     delete[] graphs;
     graphs = tmp;
     ++Nr_of_graphs;
-    
+
     return 0;
 }
 
@@ -111,35 +111,35 @@ template <class cfg_or_graph> int AGraphM::Add_AGraph(const cfg_or_graph &in)
 // {
 //     if (Nr_of_graphs == 0)
 //         return Add_AGraph_0(core);
-//     
+//
 //     AGraph **tmp;
 //     tmp = new AGraph *[Nr_of_graphs + 1];
 //     for (unsigned int i = 0; i < Nr_of_graphs; ++i)
 //         tmp[i] = graphs[i];
 //     tmp[Nr_of_graphs] = new AGraph(path);
-// 
+//
 //     delete[] graphs;
 //     graphs = tmp;
 //     ++Nr_of_graphs;
-//     
+//
 //     return 0;
 // }
-// 
+//
 // int AGraphM::Add_AGraph(const AGraph &in_graph)
 // {
 //     if (Nr_of_graphs == 0)
 //         return Add_AGraph_0(core);
-//     
+//
 //     AGraph **tmp;
 //     tmp = new AGraph *[Nr_of_graphs + 1];
 //     for (unsigned int i = 0; i < Nr_of_graphs; ++i)
 //         tmp[i] = graphs[i];
 //     tmp[Nr_of_graphs] = new AGraph(in_graph);
-// 
+//
 //     delete[] graphs;
 //     graphs = tmp;
 //     ++Nr_of_graphs;
-// 
+//
 //     return 0;
 // }
 
@@ -163,12 +163,12 @@ void AGraphM::Load_config(const string &filename)
         cerr << msg;
         return;
     }
-    if (filename.compare(filename.size()-5, 5, ".yaml") == 0) {
+    if (filename.compare(filename.size() - 5, 5, ".yaml") == 0) {
         config = YAML::LoadFile(filename);
         Load_config_(config);
         return;
     }
-    
+
     // ***legacy***
     fstream config_file;
     config_file.open(filename + ".pcfg");
@@ -199,9 +199,9 @@ void AGraphM::Load_config(const string &filename)
     }
 }
 
-/* 
+/*
  * Legacy
- * 
+ *
  */
 void AGraphM::Change_variable(const string &input, const char priority)
 {

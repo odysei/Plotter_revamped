@@ -97,16 +97,13 @@ Legend function input values: 2 vectors of data X, Z (Y in future), limits,
 
 /*
  * ROOT includes
- * 
+ *
  */
 #include <TFile.h>
 
 using namespace std;
 
-AGraph::AGraph()
-{
-    InitContructor("");
-}
+AGraph::AGraph() { InitContructor(""); }
 
 AGraph::AGraph(const string &filename)
 {
@@ -122,91 +119,91 @@ void AGraph::InitContructor(const string &filename)
     // comparable nonset values
     Debug = false;
 
-//     BinsX = 1;
-//     BinsY = 1;
-//     RangeX[0] = 0;
-//     RangeY[0] = 0;
-//     RangeZ[0] = 0;
-//     RangeX[1] = 10;
-//     RangeY[1] = 10;
-//     RangeZ[1] = 10;
-//     Angles[0] = "0";
-//     Angles[1] = "0";
-//     Angles[2] = "0";
-//     AxesTitlesOffsets[0] = 1;
-//     AxesTitlesOffsets[1] = 1;
-//     AxesTitlesOffsets[2] = 1;
-//     LegendCoordinates[0] = 0.55;
-//     LegendCoordinates[1] = 0.6;
-//     LegendCoordinates[2] = 0.95;
-//     LegendCoordinates[3] = 0.75;
-// 
-//     Names[0] = "Default plot";
-//     Names[1] = "Default file";
-//     Names[2] = "X axis";
-//     Names[3] = "Y axis";
-//     Names[4] = "Z axis";
-//     Names[5] = "Default variable";
-//     Names[6] = "Histogram";
-// 
-//     Names[8] = "Histogram";
-//     Names[10] = "Data";
-//     Names[11] = "LP";
-// 
-//     Options_string[1] = "k5a";
-// 
-//     RootDrawOptionsMH2D = "lego2";
-// 
-//     SpitRoot = "";
-// 
-//     Options[0] = 1;
-//     Options[1] = 2;
-//     Options[2] = 1;
-// 
-//     Data_Rescaling_Factor = 1;
-// 
-//     Color = 1;
-//     Fill_Color = 1;
-//     ExtraOptions[0] = -1;
-//     ExtraOptions[1] = -1;
-//     ExtraOptions[2] = -1;
-// 
-//     ExtraOptions_double[0] = -1;
-//     ExtraOptions_double[1] = 1;
-//     ExtraOptions_double[2] = -1;
-// 
-//     for (unsigned int counter = 0; counter < 17; counter++)
-//         SpecOptions[counter] = false;
-// 
-//     StyleOptions[0] = 600;
-//     StyleOptions[1] = 600;
-//     StyleOptions[2] = 0.05;
-//     StyleOptions[3] = 0.13;
-//     StyleOptions[4] = 0.16;
-//     StyleOptions[5] = 0.02;
-//     StyleOptions[6] = 1;
+    //     BinsX = 1;
+    //     BinsY = 1;
+    //     RangeX[0] = 0;
+    //     RangeY[0] = 0;
+    //     RangeZ[0] = 0;
+    //     RangeX[1] = 10;
+    //     RangeY[1] = 10;
+    //     RangeZ[1] = 10;
+    //     Angles[0] = "0";
+    //     Angles[1] = "0";
+    //     Angles[2] = "0";
+    //     AxesTitlesOffsets[0] = 1;
+    //     AxesTitlesOffsets[1] = 1;
+    //     AxesTitlesOffsets[2] = 1;
+    //     LegendCoordinates[0] = 0.55;
+    //     LegendCoordinates[1] = 0.6;
+    //     LegendCoordinates[2] = 0.95;
+    //     LegendCoordinates[3] = 0.75;
+    //
+    //     Names[0] = "Default plot";
+    //     Names[1] = "Default file";
+    //     Names[2] = "X axis";
+    //     Names[3] = "Y axis";
+    //     Names[4] = "Z axis";
+    //     Names[5] = "Default variable";
+    //     Names[6] = "Histogram";
+    //
+    //     Names[8] = "Histogram";
+    //     Names[10] = "Data";
+    //     Names[11] = "LP";
+    //
+    //     Options_string[1] = "k5a";
+    //
+    //     RootDrawOptionsMH2D = "lego2";
+    //
+    //     SpitRoot = "";
+    //
+    //     Options[0] = 1;
+    //     Options[1] = 2;
+    //     Options[2] = 1;
+    //
+    //     Data_Rescaling_Factor = 1;
+    //
+    //     Color = 1;
+    //     Fill_Color = 1;
+    //     ExtraOptions[0] = -1;
+    //     ExtraOptions[1] = -1;
+    //     ExtraOptions[2] = -1;
+    //
+    //     ExtraOptions_double[0] = -1;
+    //     ExtraOptions_double[1] = 1;
+    //     ExtraOptions_double[2] = -1;
+    //
+    //     for (unsigned int counter = 0; counter < 17; counter++)
+    //         SpecOptions[counter] = false;
+    //
+    //     StyleOptions[0] = 600;
+    //     StyleOptions[1] = 600;
+    //     StyleOptions[2] = 0.05;
+    //     StyleOptions[3] = 0.13;
+    //     StyleOptions[4] = 0.16;
+    //     StyleOptions[5] = 0.02;
+    //     StyleOptions[6] = 1;
 
-    ContainerD = NULL;
-    ContainerDZ = NULL;
-    ContainerDY = NULL;
-    ContainerDw = NULL;
+    ContainerD = nullptr;
+    ContainerDZ = nullptr;
+    ContainerDY = nullptr;
+    ContainerDw = nullptr;
 
-    AGraphHistogram_d = NULL;
-    AGraphHistogram_D = NULL;
-    AGraphPlot = NULL;
-    AGraphAxisX = NULL;
-    AGraphAxisY = NULL;
-    AGraphAxisZ = NULL;
-    AGraphCanvas = NULL;
-    AGraphLegend = NULL;
-    AGraphStyle = NULL;
+    ROOTC.hist_1D = nullptr;
+    ROOTC.hist_2D = nullptr;
+    ROOTC.graph = nullptr;
+    ROOTC.axis_X = nullptr;
+    ROOTC.axis_Y = nullptr;
+    ROOTC.axis_Z = nullptr;
+    ROOTC.canvas = nullptr;
+    ROOTC.legend = nullptr;
+    ROOTC.style = nullptr;
     Initialized = false;
     Print_Instead_Of_Draw = false;
     Print_wErrors = false;
 
-    AGraphHistogram_dM = NULL;
-    AGraphHistogram_DM = NULL;
-    AGraphPlotM = NULL;
+    ROOTC.hist_1DM = nullptr;
+    ROOTC.hist_2DM = nullptr;
+    ROOTC.graphM = nullptr;
 
     Graph_Type = "E";
     if (Read_config(filename) != 0)
@@ -231,18 +228,18 @@ AGraph::~AGraph()
     // 	delete ContainerDY;	//crashes for some reason
 
     // deinitialization takes care of these:
-    // 	delete AGraphHistogram_d;
-    // 	delete AGraphHistogram_D;
-    // 	delete AGraphPlot;
-    // delete AGraphAxisX; //This should not be deleted as it will cause crash
+    // 	delete ROOTC.hist_1D;
+    // 	delete ROOTC.hist_2D;
+    // 	delete ROOTC.graph;
+    // delete ROOTC.axis_X; //This should not be deleted as it will cause crash
     // in most cases
-    // delete AGraphAxisY; //This should not be deleted as it will cause crash
+    // delete ROOTC.axis_Y; //This should not be deleted as it will cause crash
     // in most cases
-    // delete AGraphAxisZ; //This should not be deleted as it will cause crash
+    // delete ROOTC.axis_Z; //This should not be deleted as it will cause crash
     // in most cases
-    // 	delete AGraphCanvas;
-    // 	delete AGraphLegend;
-    // 	delete AGraphStyle;
+    // 	delete ROOTC.canvas;
+    // 	delete ROOTC.legend;
+    // 	delete ROOTC.style;
 }
 
 void AGraph::DumpContainers()
@@ -250,11 +247,14 @@ void AGraph::DumpContainers()
     const auto n_x = config["Bins"]["n_x"].as<unsigned int>();
     const auto x_min = config["Range"]["x_min"].as<double>();
     const auto x_max = config["Range"]["x_min"].as<double>();
-    if (ContainerD != NULL && ContainerDZ == NULL && ContainerDY == NULL)
+    if (ContainerD != nullptr && ContainerDZ == nullptr &&
+        ContainerDY == nullptr)
         DumpHistD(*ContainerD, n_x, x_min, x_max);
-    if (ContainerD != NULL && ContainerDZ != NULL && ContainerDY == NULL)
+    if (ContainerD != nullptr && ContainerDZ != nullptr &&
+        ContainerDY == nullptr)
         DumpHistD(*ContainerD, *ContainerDZ, n_x, x_min, x_max);
-    if (ContainerD != NULL && ContainerDZ != NULL && ContainerDY != NULL)
+    if (ContainerD != nullptr && ContainerDZ != nullptr &&
+        ContainerDY != nullptr)
         cout << "Dumping not implemented yet.\n";
 }
 
@@ -285,29 +285,28 @@ void AGraph::SpitRootContainer(const string &File, const string &Type) // public
         InitializeAGraph();
 
     if (Graph_Type[0] == 'd')
-        AGraphHistogram_d->Draw(RootDrawOptions.c_str());
+        ROOTC.hist_1D->Draw(RootDrawOptions.c_str());
     if (Graph_Type[0] == 'D')
-        AGraphHistogram_D->Draw(RootDrawOptions.c_str());
+        ROOTC.hist_2D->Draw(RootDrawOptions.c_str());
     if (Graph_Type[0] == 'p')
-        AGraphPlot->Draw(RootDrawOptions.c_str());
+        ROOTC.graph->Draw(RootDrawOptions.c_str());
 
-    if (AGraphCanvas !=
-        NULL) // as it may be noninitialized if wrong type is set
-    {
+    // as it may be noninitialized if wrong type is set
+    if (ROOTC.canvas != nullptr) {
         if (config["Legend"]["add"].as<bool>())
             DrawLegend(); // Legends
-        DrawAxes(); // Setting up axes
+        DrawAxes();       // Setting up axes
 
         TFile *f = new TFile(str2char(File), "RECREATE");
         if (Type == "Canvas")
-            AGraphCanvas->Write();
+            ROOTC.canvas->Write();
         if (Type == "Histogram") {
             if (Graph_Type[0] == 'd')
-                AGraphHistogram_d->Write();
+                ROOTC.hist_1D->Write();
             if (Graph_Type[0] == 'D')
-                AGraphHistogram_D->Write();
+                ROOTC.hist_2D->Write();
             if (Graph_Type[0] == 'p')
-                AGraphPlot->Write();
+                ROOTC.graph->Write();
         }
 
         f->Close("R");

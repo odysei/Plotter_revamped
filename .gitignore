@@ -31,3 +31,6 @@ bin/plotter
 
 # Custom directories
 trash
+
+# Some test output
+examples/ex1/Plot_dlgME_bkg.pdf

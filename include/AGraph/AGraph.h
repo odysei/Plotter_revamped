@@ -92,39 +92,15 @@ Legend function input values: 2 vectors of data X, Z (Y in future), limits,
 #include <string>
 #include <vector>
 #include "yaml-cpp/yaml.h"
-
-/*
- * ROOT includes
- * 
- */
-// #include <TROOT.h>
-// #include <TFile.h>
-// #include <TTree.h>
-#include <TCanvas.h>
-// #include <TH1I.h>
-#include "TF1.h"
-#include <TH1F.h>
-#include <TH2F.h>
-// #include <TString.h>
-// 
-// #include "TLine.h"
-// #include "TBox.h"
-#include "TGraph.h"
-// #include "TGraphErrors.h"
-#include "TStyle.h"
-// #include "TPad.h"
-// #include "TLatex.h"
-#include "TLegend.h"
-// #include "TLegendEntry.h"
-// #include "THStack.h"
+#include "ROOT_containers.h"
 
 using namespace std;
 
 const double Legend_Area = 0.4; // Max possible area 1. Selected number is the
                                 // upper limit. However, it is forbidden to
                                 // shrink more than twice.
-const double Legend_Ratio = 4 / 2;  // Preferred sides ratio for the legend.
-                                    //Will take into consideration.
+const double Legend_Ratio = 4 / 2; // Preferred sides ratio for the legend.
+// Will take into consideration.
 
 // Due to bugs in Root SPEC mode, an additional offset in manual binning
 const double Offset2DHistX = 0;
@@ -137,7 +113,7 @@ class AGraph
 {
   public:
     YAML::Node config;
-    
+
     /// Variables
     string Graph_Type; // Expected types for histograms (1D): i, f, or d. E -
                        // empty
@@ -164,7 +140,7 @@ class AGraph
     int Read_config(const string &);
 
     void Change_variable(const string &, const string &); // Temporary or not??
-    void DumpContainers();                /// Not well maintained and updated
+    void DumpContainers(); /// Not well maintained and updated
     // void LoadDataSimple(vector<int>); //UC
     void LoadDataSimple(const vector<double> &); // UC ??
     void LoadDataSimple(const vector<double> &, const vector<double> &);
@@ -185,15 +161,7 @@ class AGraph
     double *Custom_BinsX, *Custom_BinsY, buffer_double;
     vector<double> buffer_vector;
 
-    TH1D *AGraphHistogram_d, **AGraphHistogram_dM;
-    TH2D *AGraphHistogram_D, **AGraphHistogram_DM;
-    TGraph *AGraphPlot, **AGraphPlotM; // Towards AGraph unification. v. beta
-                                       // 1.2.x
-    TAxis *AGraphAxisX, *AGraphAxisY, *AGraphAxisZ;
-    TCanvas *AGraphCanvas;
-    TLegend *AGraphLegend;
-    TStyle *AGraphStyle; // Using for setting the style inside the plotting
-                         // modules
+    ROOT_containers ROOTC;
 
     /// Functions
     int InitializeAGraph();
@@ -202,10 +170,22 @@ class AGraph
     void InitContructor(const string &);
     void DeInitializeAGraph();
     void AutoLegendCoordinates();
+
+    void DrawAxes();
+    void DrawLegend();
+    void SetStyle(string);      // So far {"","TDR","Matt"}
+    void Minimum(char, double); // char= X, Y, Z which corresponds to axis
+
+    /// Extra
+    friend class AGraphM;
+
+    /*
+     * Legacy
+     */
     // Char - priority: O - Override, S - set if blank
-    void Change_variable(const string &, const char); 
+    void Change_variable(const string &, const char);
     void Change_variable(const string &, const double); // Priority 'O'
-    
+
     inline bool Change_variable_generic(const char, const string &,
                                         const string &);
     inline bool Change_variable_output(const char, const string &,
@@ -233,13 +213,6 @@ class AGraph
     inline bool Change_variable_legend(const char, const string &,
                                        const string &);
     // void Change_variable(string, string); //Priority 'O'
-    void DrawAxes();
-    void DrawLegend();
-    void SetStyle(string);      // So far {"","TDR","Matt"}
-    void Minimum(char, double); // char= X, Y, Z which corresponds to axis
-
-    /// Extra
-    friend class AGraphM;
 };
 
 #endif
