@@ -1,0 +1,18 @@
+#####################
+### Local objects ###
+#####################
+
+objects_helpers=src/helpers/array_manipulations.o \
+src/helpers/type_conversion.o \
+src/helpers/ROOT/fillers_dumpers.o \
+src/helpers/ROOT/ROOT_IO.o
+
+objects_AGraph=src/AGraph/ROOT/core.o src/AGraph/ROOT/AGraphM.o \
+src/AGraph/ROOT/change_variable.o src/AGraph/ROOT/drawers.o \
+src/AGraph/ROOT/load_data.o src/AGraph/ROOT/read_config.o \
+src/AGraph/ROOT/extra.o \
+$(objects_styles)
+
+objects_styles=src/ROOT_styles/Matt.o src/ROOT_styles/TDR.o
+
+objects=$(objects_helpers) $(objects_AGraph)

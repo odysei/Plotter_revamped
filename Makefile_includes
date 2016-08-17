@@ -1,0 +1,11 @@
+###############################
+### Src and build locations ###
+###############################
+
+INCDIR0=include
+
+
+########## ROOT PART ##########
+ROOTLIB=$(ROOTSYS)/lib
+ROOTINCLUDES=$(ROOTSYS)/include
+###############################

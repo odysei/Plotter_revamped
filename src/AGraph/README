@@ -1,0 +1,128 @@
+UC - Under Construction
+
+
+
+WARNING! Plotting options are work in progress and presumably contain bugs. Default behavior is not properly set!
+WARNING! void AGraph::SpitRootContainer(..) is outdated with respect to Draw(..). Update is needed.
+WARNING! void AGraph::DumpContainers() is ill-maintained. Update is needed.
+WARNING! void AGraph::LoadDataSimple(...) are outdated and do not respect Graph_Type, will result in failures when using weights.
+WARNING! Autoscale does not respect weights. An implementation is missing.
+WARNING! Experimental custom binning.
+
+!!!WARNING!!! AGraph_Draw.cpp >> if( Print_wErrors ) << is set for a specific usage for the moment.
+WARNING! A bug in (lib/ForRoot) void ExtractHistDataXYZErrInRange(TH2D* histogram, vector<double> &DataX, vector<double> &DataY, vector<double> &DataZ, vector<double> &DataE ). It does not respect custom binning.
+
+TODO: ContainerDZ->size()==0 smart check.
+
+
+Version Beta 2.0.X
+Date 2013-02-06
+Small tweaks.
+Added int Print_Graph(s)_wErrors() functions.
+Added smoothing.
+Added a unitary background option.
+A Marker size is implemented in AGraphM run.
+Smoothing now has an implemented iteration number and a for cycle in the case of 2D hists.
+2D hists can be smoothed with an algorithm of choice.
+Added a line style option.
+Added a line width option.
+Added a fill color and style.
+Experimental custom binning.
+
+
+Version Beta 2.0.1
+Date 2012-10-22
+Weights are implemented (partially) with *ContainerDw.
+Now string Graph_Type; string *Graph_TypeM; to incorporate extra weight parameter.
+Removed ContainerDZ->size()==0 feature. ContainerDZ==NULL is implicit if not used. Otherwise, code gets cumbersome. A smart check may be needed!!!
+SpecOptions[13]: weighting
+Different order for reading lines int AGraph::LoadDataFromFile(string filename).
+Further tunes to int AGraph::LoadDataFromFile(string filename) to deal with format problems.
+Empty! and empty! flags incorporated into variable interpreter for the axes labels.
+Data_Rescaling_Factor is now implemented. Manual data rescaling is now possible.
+Change_Variable has a proper check for Marker style if none is set, i.e., "-1", if found, a default (Standard) value can be used instead.
+A Marker size is implemented as ExtraOptions_double[0].
+Fixed bug that was introduced in this iteration with rescaling _d -> _D in 2D drawing part.
+
+
+Version Beta 2.0
+Date 2012-06-28
+NEW!!! class AGraphM.
+NEW!!! Naming scheme. LIB_AutoPlotting is now LIB_AGraph.
+NEW!!! Classes separated into multipe files for easier handling.
+Now it is possible to plot several graphs on one with AGraphM.
+Many tweaks to AGraph to make it compatible with AGraph.
+Multiple graphs in one plot with different plotting options now are working.
+Graph_Type=(*GraphContainer[count]).Graph_Type;	//experimental ?? Added. Some problems are still there.
+SetPalette is now available under style options.
+AutoPlottingConfig is now LIB_AGraph_DefaultConfig.pcfg.
+
+
+Version Beta 1.2.1
+Date 2012-06-12
+>> AGraphH is now AGraph <<
+Pad grid implemented as PadGridX/PadGridY options.
+Container dumping is work in progress. Done for X- and X,Y-type data.
+Library can read data by itself with constructor AGraph( string ), number of data columns must be provided in a config.
+Config is read automatically for the datafile if AGraph( string datafile ) is used. Config should be named: datafile.pcfg.
+Now possible to adjust resolution and margins. Some other minors tweaks with respect to that.
+void InitializeAGraph() now int InitializeAGraph();
+Added safety features to int InitializeAGraph();
+void DrawUC() now int DrawUC();
+Added safety features to int DrawUC();
+In void AGraph::LoadDataFromFile(string filename) decompose.good() fused has been placed.
+
+
+Version Beta 1.2.0
+Date 2012.06.05
+AGraphH is being generalized to AGraph to handle graphs and histograms in one class. A big overlap is expected: no need for two seperate classes.
+In AGraphH::DrawAxes() initialization of TAxis placed in order to avoid pointing to nonexisting objects.
+Public drawing functions now check for initialized Canvas.
+In AGraphH::DrawAxes() "Axes' ranges" section added primarily to gain control over TGraph.
+void ExtractOptionAndValue(string, string&, string&) corrected to show =ies but will not return value (NOT option) ending with = sign.
+const char Config[]="AutoPlottingConfig" updated style.
+Containers rewritten in the pointer style to allow more flexibility. The code fixed accordingly.
+Automatic min and max set to work with normalization.
+Probably introduced but fixed a problem that compromises empty values. 
+
+
+Version Beta 1.1.1
+Date 2011.12.06
+Switch for choosing an output format implemented.
+
+
+Version Beta 1.1.0
+Date 2011.11.20
+Logscale switches installed.
+
+
+Version Beta 1.0.1
+Date 2011.08.05
+Legend coordinate adjustment implemented.
+
+
+Version Beta 1
+Date 2011.08.05
+Implementation of "\Manual Override" to help deal with possible issues when "\Default Settings" CAN override "\Main Settings" if defaults are manually set and \Main Settings unknowingly match "zero" values. "\Default Settings" fully implemented.
+
+
+Version Alpha 1.2
+Date 2011.08.04
+Implementation of "\Default Settings" from the config file has started. Some default values are set to go.
+
+
+Version Alpha 1.1.2
+Date 2011.07.07
+Fixed bug in AGraphH::SpitRootContainer(string File, string Type)
+SpitRoom changed to Type
+Fixed '\=' to '=' in void ExtractOptionAndValue(string, string&, string&)
+
+
+Version Alpha 1.1
+Date 2011.06.08
+Fixed bug in void ExtractOptionAndValue to dispose value=="\="
+Various upgrades to DrawSimpleUC
+
+
+Version Alpha 1.0
+Date 2011.06.03
