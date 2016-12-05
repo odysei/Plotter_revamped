@@ -145,7 +145,7 @@ template <class cfg_or_graph> int AGraphM::Add_AGraph(const cfg_or_graph &in)
 
 inline void AGraphM::Load_config_(const YAML::Node &config)
 {
-    auto &extra = config["Generic"]["extra_graphs"].as<vector<string>>();
+    const auto &extra = config["Generic"]["extra_graphs"].as<vector<string>>();
     if (extra.size() == 0)
         return;
     for (auto i : extra) {

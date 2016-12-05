@@ -1,0 +1,160 @@
+#//Configuration file for Auto Plotting class. Lines starting with "//" are to be dismissed.
+#//This file is supposed to be kept in one of the following paths and is given in the priority order:
+#//1. Directory of the main program
+#//2. config/ directory
+#//
+#//X and Y for 3D plots (2D histograms), for 2D plots XZ plane is used NOT XY
+#//
+#//IMPORTANT NOTES!
+#//Blanks lead to automatic settings. Automatic means either preset or automatic adjustment (which is on the way).
+#//Originally "\Default Settings" were set to match default or "zero" values at preinitialization and are
+#//treated as "empty" values. IF AND ONLY IF "\Main Settings" match the "zero" values, they become vulnerable and CAN
+#//BE overriden by Default Settings. In case that happens and user does not remember original Default Settings,
+#//"\Manual Override" section can be used to fix the issue OR use void Change_variable(string, string) in the code,
+#//which is less recommended.
+#//
+
+Data_file: 'blah.txt'
+
+Generic:
+    # Options: Histogram, Histogram2D, Plot, Plot2D (last one not yet implemented)
+    plot_type: 'Histogram'
+    use_weights: false
+    plot_name: 'title'
+    variable_name: 't#bar{t}b#bar{b} (H)'
+    data_name: 'Data'
+    columns_in_file: 1
+    extra_graphs: ['smeared.yaml']
+
+Output:
+    # plotter overwrites if empty
+    filename: ''
+    # Not always working with all styles
+    filename_prefix: 'Plot_'
+    # Format of the graphical file. Possible values: png, jpg, eps. In fact,
+    # any that CERN ROOT supports. Default behavior not implemented yet.
+    # MUST BE SPECIFIED HERE!
+    type: 'pdf'
+    # Output an additional root file for the plot, choose: Histogram or Canvas,
+    # blank: no additional output
+    add_root_file: ''
+
+
+#//#frac{|\sigma_{interference}|}{\sigma_{t}+\sigma_{s}}; m_{4l}
+#//=#slash{E}_{T}, GeV
+# To leave axes labels empty, enter empty! or Empty!
+Axes:
+    label_x: 'lg|M(p_{MET}|B)|^{2} - lg|M(p_{gen}|B)|^{2}'
+    # Y is for future 3D plots. 2012-06-05 msg: Something has been accidentally
+    # renamed?
+    label_y: 'Fraction'
+    label_z: 'Fraction of events'
+    # WARNING! Will blank if minimum is 0 with log. No fuse yet made.
+    log_x: false
+    log_y: false
+    log_z: false
+
+Bins:
+    # Note an extra point/bin in SPEC because of the edges
+    n_x: 50
+    n_y: 40
+    # Manual/custom binning, there should be one extra bin
+    custom_binning: false
+    custom_x: [0, 1, 3, 10]
+    custom_y: [0, 1, 3, 10]
+
+Range:
+    x_min: -2
+    x_max: 2
+    y_min: 0
+    y_max: 1
+    z_min: 0
+    z_max: 1
+
+Auto:
+    scale_z_min: false
+    scale_z_max: true
+    normalize: true
+    # Rescaling factor is applied on top of (in addition or without)
+    # normalization. An overall multiplier
+    rescale: 1
+
+Smooth:
+    use: false
+    times: 1
+    algorithm_2D: 'k5a'
+
+Floor:
+    add: false
+    value: 1
+
+Other:
+    pad_grid_x: true
+    pad_grid_y: true
+    # 3D plot angles. Increasement by 90 for Z. For example 20, 45, 270
+    angleA_3D: 0
+    angleB_3D: 0
+    angleZ_3D: 0
+
+Draw_options:
+    # Regular graph/plot (2D plot) drawing options: LP. "A" option is always
+    # included for the FIRST plot, i.e., A+LP
+    graph: ''
+    # Regular graph/plot (2D plot) drawing options: ALP?? Work in progress
+    graph_2D: ''
+    # Histogram (2D plot) drawing options: E1 HIST
+    histogram: 'HIST'
+    # 2D Histogram (3D plot) drawing options (z for the palette): surf3z,
+    # lego2z, colorz, scat ..
+    histogram_2D: 'colorz'
+
+Curves_and_fill:
+    fill:
+        color: 2
+        style: 0
+    # Note that not all marker styles react to the size flag. Nr. 8, for
+    # example, does (big dot)
+    marker:
+        size: 0.5
+        style: -1
+    line:
+        width: 1
+        style: 1
+    line_marker_color: 4
+
+Formatting:
+    # Set style out of {TDR, Matt}, if blank=> TDR. add c for customization,
+    # for example, TDRc.
+    style: 'TDRc'
+    x_resolution: 600
+    y_resolution: 600
+    margin:
+        top: 0.05
+        bottom: 0.2
+        left: 0.16
+        right: 0.05
+    pallete_nr: 1
+    # Offsets (x, y, z) for 3D: 1.3, 1.3, 1.1
+    title_offset:
+        x: 1.25
+        y: 1.2
+        z: 1.5
+    #title_centering:
+        #x: true
+        #y: true
+        #z: true
+
+Legend:
+    # Legend may have additional options, at the moment 0 or 1. BL: bottom
+    # left; TR: top right.
+    add: true
+    marker: 'LP'
+    placement:
+        # |
+        # ---
+        BL_x: 0.2
+        BL_y: 0.75
+        # ___
+        #   |
+        TR_x: 0.4
+        TR_y: 0.9

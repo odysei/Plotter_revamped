@@ -123,6 +123,7 @@ inline void AGraph::Init_hist_floor(TH1D *h)
         const double value = h->GetBinContent(bin);
         if (value == 0) {
             h->SetBinContent(bin, floor);
+            //h->SetBinError(bin, 0);
             h->SetBinError(bin, floor);
         } else
             h->SetBinContent(bin, (floor + value));
@@ -140,6 +141,7 @@ inline void AGraph::Init_hist_floor(TH2D *h)
             const double value = h->GetBinContent(bin);
             if (value == 0) {
                 h->SetBinContent(bin, floor);
+                //h->SetBinError(bin, 0);
                 h->SetBinError(bin, floor);
             } else
                 h->SetBinContent(bin, (floor + value));
