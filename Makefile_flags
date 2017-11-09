@@ -11,7 +11,7 @@ CFLAGS= -pedantic -Wunused-variable -Werror=sign-compare \
 -Wunused-but-set-variable -Werror=return-type -Werror=missing-braces \
 -Werror=delete-non-virtual-dtor -Werror=maybe-uninitialized \
 -fPIC -std=c99
-LIBFLAGS=-L $(LIBDIR) $(shell root-config --glibs) -l yaml-cpp
+LIBFLAGS=-L $(LIBDIR) $(shell root-config --glibs) -l yaml-cpp -lboost_system
 
 
 
