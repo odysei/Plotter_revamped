@@ -1,3 +1,3 @@
 #!/bin/bash
 
-../../bin/plotter dlgME_bkg.yaml
+../../bin/plotter dlgME_bkg.yaml ./Plots/Plot_
