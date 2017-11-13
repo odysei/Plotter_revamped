@@ -30,7 +30,7 @@ Output:
     # plotter overwrites if empty
     filename: ''
     # Not always working with all styles
-    filename_prefix: 'Plot_'
+    filename_prefix: ''
     # Format of the graphical file. Possible values: png, jpg, eps. In fact,
     # any that CERN ROOT supports. Default behavior not implemented yet.
     # MUST BE SPECIFIED HERE!

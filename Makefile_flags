@@ -5,13 +5,13 @@
 CXXFLAGS= -std=c++11 -pedantic -Wunused-variable -Werror=sign-compare \
 -Wunused-but-set-variable -Werror=return-type -Werror=missing-braces \
 -Werror=delete-non-virtual-dtor -Werror=maybe-uninitialized \
--fPIC -O -I . -I $(INCDIR0) \
+-fPIC -O -I . -I $(INCDIR0) -I $(INCDIR1) \
 -I $(shell root-config --incdir) $(shell root-config --cflags)
 CFLAGS= -pedantic -Wunused-variable -Werror=sign-compare \
 -Wunused-but-set-variable -Werror=return-type -Werror=missing-braces \
 -Werror=delete-non-virtual-dtor -Werror=maybe-uninitialized \
 -fPIC -std=c99
-LIBFLAGS=-L $(LIBDIR) $(shell root-config --glibs) -l yaml-cpp
+LIBFLAGS=-L $(LIBDIR) $(shell root-config --glibs) -l yaml-cpp -lboost_system
 
 
 

@@ -3,7 +3,11 @@
 ###############################
 
 INCDIR0=include
+#INCDIR1=/afs/cern.ch/sw/lcg/releases/MCGenerators/yaml-cpp/0.3.0-6b7e5/x86_64-cc7-gcc49-opt/include
+INCDIR1=~/local/include
 
+#LIBDIR=/afs/cern.ch/sw/lcg/releases/MCGenerators/yaml-cpp/0.3.0-6b7e5/x86_64-cc7-gcc49-opt/lib
+LIBDIR=~/local/lib
 
 ########## ROOT PART ##########
 ROOTLIB=$(ROOTSYS)/lib

@@ -5,8 +5,10 @@
 
 #include "AGraph/AGraphM.h"
 #include "helpers/type_conversion.h"
+#include <boost/filesystem.hpp>
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 // 0 - program name; 1 - destination (data) folder; 2 - automatically generated
 // list of files (each name - new line)
@@ -18,9 +20,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     const string filename(argv[1]);
+    const string outpath(argv[2]);
+    
+    const string file_basename = fs::basename(filename);
     
     if (filename.compare(filename.size() - 5, 5, ".yaml") == 0) {
-        const string outf = filename.substr(0, filename.size() - 5);
+        const string outf = outpath + file_basename.substr(0, file_basename.size() - 5);
         AGraphM graphs(filename);
         auto &cf = graphs[-1]->config;
         if (cf["Output"]["filename"].as<string>().size() < 1)
